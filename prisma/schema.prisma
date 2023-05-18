@@ -1,0 +1,79 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  user_id     Int           @id @default(autoincrement())
+  uuid        String        @unique(map: "uuid") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  username    String        @unique @db.VarChar(255)
+  address     String?
+  password    String        @db.VarChar(255)
+  role        role          @default(user)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  phone       String
+  UserProduct userproduct[]
+}
+
+model product {
+  product_id      Int               @id @default(autoincrement())
+  name            String?
+  price           Int?
+  quantity        Int?
+  desc            String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  Media           media[]
+  ProductCategory productcategory[]
+  UserProduct     userproduct[]
+}
+
+model category {
+  category_id     Int               @id @default(autoincrement())
+  name            String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  ProductCategory productcategory[]
+}
+
+model media {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  url       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  productId Int?
+  product   product? @relation(fields: [productId], references: [product_id])
+}
+
+model productcategory {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  categoryId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  category   category @relation(fields: [categoryId], references: [category_id])
+  product    product  @relation(fields: [productId], references: [product_id])
+}
+
+model userproduct {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   product  @relation(fields: [productId], references: [product_id])
+  user      users    @relation(fields: [userId], references: [user_id])
+}
+
+enum role {
+  admin
+  user
+}
